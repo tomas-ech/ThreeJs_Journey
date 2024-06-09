@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import gsap from 'gsap'
+import { OrbitControls } from 'three/examples/jsm/Addons.js'
 
 // 1. Scene
 const scene = new THREE.Scene()
@@ -48,23 +48,6 @@ const camera = new THREE.PerspectiveCamera(
 
 // -----------------   CUSTOM CONTROLS   ----------------------
 
-
-
-//Cursor
-
-const cursor = {
-    xAxis: 0,
-    yAxis: 0
-}
-
-window.addEventListener('mousemove', (event) => {
-    
-    cursor.xAxis = event.clientX / sizes.width - 0.5
-    cursor.yAxis = -(event.clientY / sizes.height - 0.5)
-    
-    console.log(cursor.xAxis, cursor.yAxis)
-})
-
 camera.position.z = 3
 scene.add(camera)
 
@@ -76,16 +59,50 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(sizes.width, sizes.height)
 
+// Orbit Controls despues de agregar la camera y crear el canvas
+const controls = new OrbitControls(camera, canvas)
+
+controls.target.y = 2   // target -> a donde mira la camara
+//controls.update()       // Carga los ultimos cambios hechos a los controles
+controls.enableDamping = true
+
 const tick = () => {
-
-    // Update Camera Position (sin and cos to move in a circle)
-    camera.position.x = Math.sin(cursor.xAxis * Math.PI * 2) * 2 
-    camera.position.z = Math.cos(cursor.xAxis * Math.PI * 2) * 2
-    camera.position.y = cursor.yAxis * 3 // Last number is for amplitud
-    camera.lookAt(mesh.position)
-
+    controls.update()  //Se llama en el ciclo por que el damping se calcula cada frame
     renderer.render(scene, camera)
     window.requestAnimationFrame(tick)
 }
+
+
+
+//Manually Added Controls
+
+//Cursor
+
+// const cursor = {
+//     xAxis: 0,
+//     yAxis: 0
+// }
+
+//Manually getting the cursor data
+// window.addEventListener('mousemove', (event) => {
+
+//     cursor.xAxis = event.clientX / sizes.width - 0.5
+//     cursor.yAxis = -(event.clientY / sizes.height - 0.5)
+
+//     console.log(cursor.xAxis, cursor.yAxis)
+// })
+
+// const tick = () => {
+
+//     //Update Camera Position (sin and cos to move in a circle)
+//     camera.position.x = Math.sin(cursor.xAxis * Math.PI * 2) * 2 
+//     camera.position.z = Math.cos(cursor.xAxis * Math.PI * 2) * 2
+//     camera.position.y = cursor.yAxis * 3 // Last number is for amplitud
+//     camera.lookAt(mesh.position)
+
+//     renderer.render(scene, camera)
+//     window.requestAnimationFrame(tick)
+// }
+
 
 tick()
