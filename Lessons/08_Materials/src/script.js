@@ -1,9 +1,14 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import GUI from 'lil-gui'
+import { RGBELoader } from 'three/examples/jsm/Addons.js'
 
 /**
  * Base
  */
+
+const gui = new GUI({title: "Materials Panel"})
+
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
@@ -15,7 +20,9 @@ const textureLoader = new THREE.TextureLoader()
 
 const doorColor = textureLoader.load('textures/door/color.jpg')
 const alphaTexture = textureLoader.load('textures/door/alpha.jpg')
-const matCapTexture = textureLoader.load('textures/matcaps/3.png')
+const gradientTexture = textureLoader.load('textures/gradients/5.jpg')
+
+const matCapTexture = textureLoader.load('textures/matcaps/8.png')
 doorColor.colorSpace = THREE.SRGBColorSpace
 matCapTexture.colorSpace = THREE.SRGBColorSpace
 
@@ -34,13 +41,70 @@ const sphere = new THREE.SphereGeometry(1,20,20)
 /*Alpha Material*/ 
 //material.alphaMap = alphaTexture
 // const material = new THREE.MeshNormalMaterial()
-// material.side = THREE.DoubleSide
+//material.side = THREE.DoubleSide
 // material.flatShading = true
 // material.wireframe = true
 
 /*MatCap Texture*/
-const material = new THREE.MeshMatcapMaterial()
-material.matcap = matCapTexture
+// const material = new THREE.MeshMatcapMaterial()
+// material.matcap = matCapTexture
+
+//Lamber Material  (need real lights)
+//const material = new THREE.MeshLambertMaterial()
+
+//Phong Material  (need real lights) (less performant than lamber)
+// const material = new THREE.MeshPhongMaterial(0xffffff, 1) //Similar to lamber but the light division is less visible
+// material.shininess = 100
+// material.specular = new THREE.Color(0xefc3d2)
+
+//Toon material (need real lights)
+// const material = new THREE.MeshToonMaterial()
+// gradientTexture.minFilter = THREE.NearestFilter
+// gradientTexture.magFilter = THREE.NearestFilter
+// gradientTexture.generateMipmaps = false
+// material.gradientMap = gradientTexture
+
+//Standard material  (need lights) (use physics)
+const material = new THREE.MeshStandardMaterial()
+material.map = doorColor //load the "albedo" 
+material.metalness = 1
+material.roughness = 0
+
+gui
+.add(material, 'metalness')
+.min(0)
+.max(1)
+.step(0.001)
+
+gui
+.add(material, 'roughness')
+.min(0)
+.max(1)
+.step(0.001)
+
+//----- Lights -----
+
+// const ambientLight = new THREE.AmbientLight(0xffffff, 1)
+
+// const pointLight = new THREE.PointLight(0xffffff, 30)
+// pointLight.position.z = 1
+// pointLight.position.x = 2
+// pointLight.position.y = 3
+
+// scene.add(ambientLight)
+// scene.add(pointLight)
+
+// ----- Environment map  (doesnt need lights)
+const rgbeLoader = new RGBELoader
+rgbeLoader.load('textures/environmentMap/2k.hdr', (environmentMap) => {
+    
+    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+
+    scene.background = environmentMap  //Send the image to the background
+    scene.environment = environmentMap  // Made that objects reflects the image
+})
+
+
 
 const torusMesh = new THREE.Mesh(torus, material)
 torusMesh.position.x = 2
