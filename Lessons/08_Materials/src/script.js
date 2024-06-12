@@ -18,19 +18,26 @@ const scene = new THREE.Scene()
 //textures
 const textureLoader = new THREE.TextureLoader()
 
-const doorColor = textureLoader.load('textures/door/color.jpg')
 const alphaTexture = textureLoader.load('textures/door/alpha.jpg')
 const gradientTexture = textureLoader.load('textures/gradients/5.jpg')
 
+const doorColor = textureLoader.load('textures/door/color.jpg')
+const aoTexture = textureLoader.load('textures/door/ambientOcclusion.jpg')
+const heightTexture = textureLoader.load('textures/door/height.jpg')
+const metalnessTexture = textureLoader.load('textures/door/metalness.jpg')
+const roughnessTexture = textureLoader.load('textures/door/roughness.jpg')
+const normalTexture = textureLoader.load('textures/door/normal.jpg')
+
 const matCapTexture = textureLoader.load('textures/matcaps/8.png')
+
 doorColor.colorSpace = THREE.SRGBColorSpace
 matCapTexture.colorSpace = THREE.SRGBColorSpace
 
 
 
-const torus = new THREE.TorusGeometry(1, 0.2)
-const plane = new THREE.PlaneGeometry(1, 1, 2, 2)
-const sphere = new THREE.SphereGeometry(1,20,20)
+const torus = new THREE.TorusGeometry(0.3, 0.2, 64, 128)
+const plane = new THREE.PlaneGeometry(1, 1, 100, 100)
+const sphere = new THREE.SphereGeometry(0.5, 64, 64)
 
 //const material = new THREE.MeshBasicMaterial()
 //material.map = doorColor
@@ -64,11 +71,29 @@ const sphere = new THREE.SphereGeometry(1,20,20)
 // gradientTexture.generateMipmaps = false
 // material.gradientMap = gradientTexture
 
-//Standard material  (need lights) (use physics)
+//Standard material  (no necessary need lights) (use physics)
 const material = new THREE.MeshStandardMaterial()
+
 material.map = doorColor //load the "albedo" 
 material.metalness = 1
-material.roughness = 0
+material.roughness = 1
+
+material.aoMap = aoTexture //ambient occlusion map -> add shadows
+material.aoMapIntensity = 1
+
+material.displacementMap = heightTexture; //height map -> relief
+material.displacementScale = 0.1
+
+material.metalnessMap = metalnessTexture
+
+material.roughnessMap = roughnessTexture
+
+material.normalMap = normalTexture
+material.normalScale.set(2,2)
+
+material.transparent = true
+material.alphaMap = alphaTexture
+
 
 gui
 .add(material, 'metalness')
@@ -174,7 +199,7 @@ const tick = () =>
 
     sphereMesh.rotation.y = 0.2 * elapsedTime
     torusMesh.rotation.x = 0.4 * elapsedTime
-    planeMesh.rotation.z = 0.1 * elapsedTime
+    //planeMesh.rotation.z = 0.1 * elapsedTime
 
     // Update controls
     controls.update()
