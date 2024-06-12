@@ -10,7 +10,7 @@ import { clamp } from 'three/src/math/MathUtils.js'
  */
 
 // Debug
-const gui = new GUI()
+
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -33,14 +33,15 @@ matCapMaterial.colorSpace = THREE.SRGBColorSpace
  */
 const fontLoader = new FontLoader()
 
-const textMaterial = new THREE.MeshMatcapMaterial()
-textMaterial.matcap = matCapMaterial
+// const textMaterial = new THREE.MeshMatcapMaterial()
+// textMaterial.matcap = matCapMaterial
+const textMaterial = new THREE.MeshNormalMaterial()
 
 fontLoader.load(
     '/fonts/helvetiker_regular.typeface.json',
     (font) => {
         const textGeometry = new TextGeometry(
-            'Hola Papushis',
+            'Lindo el que lo lea',
             {
                 font: font,
                 size: 0.6,
