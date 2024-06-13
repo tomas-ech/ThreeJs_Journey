@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Timer } from 'three/addons/misc/Timer.js'
 import GUI from 'lil-gui'
+import { clamp } from 'three/src/math/MathUtils.js'
 
 //Textures
 const textureLoader = new THREE.TextureLoader()
@@ -9,6 +10,7 @@ const albedoDoor = textureLoader.load('door/color.jpg')
 albedoDoor.colorSpace = THREE.SRGBColorSpace
 const alphaDoor = textureLoader.load('door/alpha.jpg')
 
+//Floor Textures
 const albedoFloor = textureLoader.load('forest/color.jpg')
 albedoFloor.colorSpace = THREE.SRGBColorSpace
 const alphaFloor = textureLoader.load('floor/alpha.jpg')
@@ -16,6 +18,12 @@ const roughnessFloor = textureLoader.load('floor/roughness.jpg')
 const normalFloor = textureLoader.load('floor/normal.jpg')
 const heightFloor = textureLoader.load('floor/height.jpg')
 const aoFloor = textureLoader.load('floor/ambientOcclusion.jpg')
+
+//Walls Textures
+const albedoWall = textureLoader.load('walls/color.jpg')
+albedoWall.colorSpace = THREE.SRGBColorSpace
+const normalWall = textureLoader.load('walls/normal.jpg')
+const heightWall = textureLoader.load('walls/height.jpg')
 
 /**
  * Base
@@ -33,7 +41,7 @@ const scene = new THREE.Scene()
  * Floor
  */
 const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(20, 20),
+    new THREE.PlaneGeometry(20, 20, 100, 100),
     new THREE.MeshStandardMaterial()
 )
 floor.rotation.x = -Math.PI / 2
@@ -43,6 +51,8 @@ floor.material.alphaMap = alphaFloor
 floor.material.roughnessMap = roughnessFloor
 floor.material.normalMap = normalFloor
 floor.material.displacementMap = heightFloor
+floor.material.displacementScale = 0.3
+floor.material.displacementBias = -0.2
 floor.material.aoMap = aoFloor
 floor.material.aoMapIntensity = 0.3
 scene.add(floor)
@@ -55,9 +65,18 @@ scene.add(house)
 
 const walls = new THREE.Mesh(
     new THREE.BoxGeometry(4, 2.5, 4),
-    new THREE.MeshStandardMaterial()
+    new THREE.MeshStandardMaterial({
+        map: albedoWall,
+        normalMap: normalWall,
+        displacementMap: heightWall,
+        displacementScale: 0.3,
+        displacementBias: -0.2
+    })
 )
 walls.position.y += 1.25
+albedoWall.repeat.set(2, 2)
+albedoWall.wrapS = THREE.RepeatWrapping
+albedoWall.wrapT = THREE.RepeatWrapping
 house.add(walls)
 
 const roof = new THREE.Mesh(
@@ -69,7 +88,7 @@ roof.rotation.y = Math.PI / 4
 house.add(roof)
 
 const door = new THREE.Mesh(
-    new THREE.PlaneGeometry(2.2, 2.2),
+    new THREE.PlaneGeometry(2.2, 2.2, 100, 100),
     new THREE.MeshStandardMaterial
 )
 door.position.set(0, 1, 2 + 0.01)
@@ -99,27 +118,30 @@ bush4.position.set(- 1.2, 0.05, 2.6)
 
 house.add(bush1, bush2, bush3, bush4)
 /*
-Graves
+Globe
 */
-const graveGeometry = new THREE.BoxGeometry(0.6, 0.8, 0.2)
-const graveMaterial =  new THREE.MeshStandardMaterial()
+const globeGeometry = new THREE.SphereGeometry(1, 16, 16)
+const globeMaterial =  new THREE.MeshNormalMaterial()
 
-const graves = new THREE.Group()
-scene.add(graves)
+const globes = new THREE.Group()
+scene.add(globes)
 
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < 40; i++) {
 
     const angle = Math.random() * Math.PI * 2
-    const radius = 3 + Math.random() * 4
+    const radius = 3.5 + Math.random() * 6
     const xValue = Math.sin(angle) * radius
     const zValue = Math.cos(angle) * radius
-    const yValue = Math.random() * 0.4
+    const yValue = clamp(Math.random() * 10, 1, 10)
+
+    const scale = clamp(Math.random() * 0.5, 0.2, 0.5)
  
     //mesh
-    const singleGrave = new THREE.Mesh(graveGeometry, graveMaterial)
-    singleGrave.position.set(xValue, yValue, zValue)
-    singleGrave.rotation.x = Math.random() - 0.3
-    graves.add(singleGrave)
+    const singleGlobe = new THREE.Mesh(globeGeometry, globeMaterial)
+    singleGlobe.position.set(xValue, yValue, zValue)
+    singleGlobe.rotation.x = Math.random() - 0.3
+    singleGlobe.scale.set(scale, scale, scale)
+    globes.add(singleGlobe)
 }
 
 /**
@@ -161,8 +183,8 @@ window.addEventListener('resize', () => {
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 4
-camera.position.y = 2
+camera.position.x = 0
+camera.position.y = 6
 camera.position.z = 15
 scene.add(camera)
 
