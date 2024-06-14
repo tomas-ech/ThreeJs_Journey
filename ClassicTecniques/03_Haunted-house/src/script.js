@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Timer } from 'three/addons/misc/Timer.js'
 import GUI from 'lil-gui'
 import { clamp } from 'three/src/math/MathUtils.js'
+import { Sky } from 'three/examples/jsm/Addons.js'
 
 //Textures
 const textureLoader = new THREE.TextureLoader()
@@ -24,6 +25,20 @@ const albedoWall = textureLoader.load('walls/color.jpg')
 albedoWall.colorSpace = THREE.SRGBColorSpace
 const normalWall = textureLoader.load('walls/normal.jpg')
 const heightWall = textureLoader.load('walls/height.jpg')
+
+//Roof Textures
+const albedoRoof = textureLoader.load('roof/color.jpg')
+albedoRoof.colorSpace = THREE.SRGBColorSpace
+const normalRoof = textureLoader.load('roof/normal.jpg')
+const aoRoof = textureLoader.load('roof/aomap.jpg')
+
+//Bush Textures
+const albedoBush = textureLoader.load('bush/color.jpg')
+albedoBush.colorSpace = THREE.SRGBColorSpace
+
+//Globe Textures
+const globeMatcap = textureLoader.load('mapcaps/F77777_FBE1E1_FAB2B2_FBC4C4.jpg')
+
 
 /**
  * Base
@@ -55,12 +70,17 @@ floor.material.displacementScale = 0.3
 floor.material.displacementBias = -0.2
 floor.material.aoMap = aoFloor
 floor.material.aoMapIntensity = 0.3
+albedoFloor.repeat.set(2, 2)
+albedoFloor.wrapS = THREE.RepeatWrapping
+albedoFloor.wrapT = THREE.RepeatWrapping
 scene.add(floor)
+
 
 /**
  * House
  */
 const house = new THREE.Group()
+house.position.y = -0.2
 scene.add(house)
 
 const walls = new THREE.Mesh(
@@ -74,22 +94,35 @@ const walls = new THREE.Mesh(
     })
 )
 walls.position.y += 1.25
-albedoWall.repeat.set(2, 2)
+albedoWall.repeat.set(3, 2)
 albedoWall.wrapS = THREE.RepeatWrapping
 albedoWall.wrapT = THREE.RepeatWrapping
 house.add(walls)
 
 const roof = new THREE.Mesh(
     new THREE.ConeGeometry(3.5, 1.5, 4),
-    new THREE.MeshStandardMaterial()
+    new THREE.MeshStandardMaterial({
+        map: albedoRoof,
+        normalMap: normalRoof,
+        aoMap: aoRoof,
+        roughnessMap: aoRoof,
+        metalnessMap: aoRoof
+    })
 )
+albedoRoof.repeat.set(3, 1)
+normalRoof.repeat.set(3, 1)
+aoRoof.repeat.set(3, 1)
+
+albedoRoof.wrapS = THREE.RepeatWrapping
+normalRoof.wrapS = THREE.RepeatWrapping
+
 roof.position.y += 2.5 /*wall height*/ + 0.75 /*half roof*/
 roof.rotation.y = Math.PI / 4
 house.add(roof)
 
 const door = new THREE.Mesh(
     new THREE.PlaneGeometry(2.2, 2.2, 100, 100),
-    new THREE.MeshStandardMaterial
+    new THREE.MeshStandardMaterial()
 )
 door.position.set(0, 1, 2 + 0.01)
 door.material.map = albedoDoor
@@ -98,7 +131,12 @@ door.material.alphaMap = alphaDoor
 house.add(door)
 
 const bushGeometry = new THREE.SphereGeometry(1, 16, 16)
-const bushMaterial = new THREE.MeshStandardMaterial()
+const bushMaterial = new THREE.MeshStandardMaterial({
+    color: '#ccffcc',
+    map: albedoBush
+})
+albedoBush.repeat.set(2, 1)
+albedoBush.wrapS = THREE.RepeatWrapping
 
 const bush1 = new THREE.Mesh(bushGeometry, bushMaterial)
 bush1.scale.set(0.5, 0.5, 0.5)
@@ -120,21 +158,24 @@ house.add(bush1, bush2, bush3, bush4)
 /*
 Globe
 */
-const globeGeometry = new THREE.SphereGeometry(1, 16, 16)
-const globeMaterial =  new THREE.MeshNormalMaterial()
+const globeGeometry = new THREE.SphereGeometry(1, 8, 8)
+const globeMaterial =  new THREE.MeshMatcapMaterial({
+    matcap: globeMatcap
+})
 
 const globes = new THREE.Group()
 scene.add(globes)
 
-for (let i = 0; i < 40; i++) {
+
+for (let i = 0; i < 30; i++) {
 
     const angle = Math.random() * Math.PI * 2
-    const radius = 3.5 + Math.random() * 6
+    const radius = 3.5 + Math.random() * 8
     const xValue = Math.sin(angle) * radius
     const zValue = Math.cos(angle) * radius
     const yValue = clamp(Math.random() * 10, 1, 10)
 
-    const scale = clamp(Math.random() * 0.5, 0.2, 0.5)
+    const scale = clamp(Math.random() * 0.4, 0.15, 0.4)
  
     //mesh
     const singleGlobe = new THREE.Mesh(globeGeometry, globeMaterial)
@@ -148,13 +189,50 @@ for (let i = 0; i < 40; i++) {
  * Lights
  */
 // Ambient light
-const ambientLight = new THREE.AmbientLight('#ffffff', 0.5)
+const ambientLight = new THREE.AmbientLight('#86cdff', 0.5)
 scene.add(ambientLight)
 
 // Directional light
-const directionalLight = new THREE.DirectionalLight('#ffffff', 1.5)
+const directionalLight = new THREE.DirectionalLight('#86cdff', 1)
 directionalLight.position.set(3, 2, -8)
 scene.add(directionalLight)
+
+// Point light  ->  Door Light
+const doorLight = new THREE.PointLight('#ff7d46', 5)
+doorLight.position.set(0, 2.2, 2.5)
+const Guide = new THREE.PointLightHelper(doorLight, 1, 100)
+scene.add(Guide)
+scene.add(doorLight)
+
+/**
+* Spirits
+*/
+const spirit1 = new THREE.PointLight('#ffb8ce', 6)
+gui.add(spirit1, 'intensity').min(0).max(100).step(1).name('Spirit1 Intensity')
+scene.add(spirit1)
+const spiritGuide = new THREE.PointLightHelper(spirit1, 1, 100)
+scene.add(spiritGuide)
+
+/**
+* Sky
+*/
+const sky = new Sky()
+
+sky.material.uniforms['turbidity'].value = 10
+sky.material.uniforms['rayleigh'].value = 1
+sky.material.uniforms['mieCoefficient'].value = 0.1
+sky.material.uniforms['mieDirectionalG'].value = 0.95
+sky.material.uniforms['sunPosition'].value.set(0.3, -0.038, -0.95)
+
+sky.scale.set(100,100,100)
+
+scene.add(sky)
+
+/**
+* Fog
+*/
+scene.fog = new THREE.FogExp2('#04343f', 0.05)
+gui.add(scene.fog, 'density').min(0).max(0.2).step(0.01).name('Fog Density')
 
 /**
  * Sizes
@@ -210,6 +288,12 @@ const tick = () => {
     // Timer
     timer.update()
     const elapsedTime = timer.getElapsed()
+
+    //Spirits
+    const spirit1Angle = elapsedTime / 2
+    const spiritRadius = 5
+    spirit1.position.x = Math.cos(spirit1Angle) * spiritRadius
+    spirit1.position.z = Math.sin(spirit1Angle) * spiritRadius
 
     // Update controls
     controls.update()
