@@ -161,10 +161,10 @@ house.add(bush1, bush2, bush3, bush4)
 /*
 Globe
 */
-const globeGeometry = new THREE.SphereGeometry(1, 10, 10)
+const globeGeometry = new THREE.SphereGeometry(1, 5, 5)
 const globeMaterial = new THREE.PointsMaterial({
-    size: 0.02,
-    sizeAttenuation: true
+    size: 0.05,
+    sizeAttenuation: false
 })
 
 
