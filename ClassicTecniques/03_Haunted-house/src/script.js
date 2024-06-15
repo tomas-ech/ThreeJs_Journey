@@ -7,6 +7,7 @@ import { Sky } from 'three/examples/jsm/Addons.js'
 
 //Textures
 const textureLoader = new THREE.TextureLoader()
+
 const albedoDoor = textureLoader.load('door/color.jpg')
 albedoDoor.colorSpace = THREE.SRGBColorSpace
 const alphaDoor = textureLoader.load('door/alpha.jpg')
@@ -15,10 +16,10 @@ const alphaDoor = textureLoader.load('door/alpha.jpg')
 const albedoFloor = textureLoader.load('forest/color.jpg')
 albedoFloor.colorSpace = THREE.SRGBColorSpace
 const alphaFloor = textureLoader.load('floor/alpha.jpg')
-const roughnessFloor = textureLoader.load('floor/roughness.jpg')
-const normalFloor = textureLoader.load('floor/normal.jpg')
-const heightFloor = textureLoader.load('floor/height.jpg')
-const aoFloor = textureLoader.load('floor/ambientOcclusion.jpg')
+const roughnessFloor = textureLoader.load('forest/roughness.jpg')
+const normalFloor = textureLoader.load('forest/normal.jpg')
+const heightFloor = textureLoader.load('forest/height.jpg')
+const aoFloor = textureLoader.load('forest/ambientOcclusion.jpg')
 
 //Walls Textures
 const albedoWall = textureLoader.load('walls/color.jpg')
@@ -55,22 +56,24 @@ const scene = new THREE.Scene()
 /**
  * Floor
  */
+
 const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20, 100, 100),
-    new THREE.MeshStandardMaterial()
+    new THREE.MeshStandardMaterial({
+        map: albedoFloor,
+        alphaMap: alphaFloor,
+        transparent: true,
+        normalMap: normalFloor
+    })
 )
 floor.rotation.x = -Math.PI / 2
-floor.material.map = albedoFloor
-floor.material.transparent = true
-floor.material.alphaMap = alphaFloor
 floor.material.roughnessMap = roughnessFloor
-floor.material.normalMap = normalFloor
 floor.material.displacementMap = heightFloor
 floor.material.displacementScale = 0.3
 floor.material.displacementBias = -0.2
 floor.material.aoMap = aoFloor
-floor.material.aoMapIntensity = 0.3
-albedoFloor.repeat.set(2, 2)
+floor.material.aoMapIntensity = 1
+albedoFloor.repeat.set(4, 4)
 albedoFloor.wrapS = THREE.RepeatWrapping
 albedoFloor.wrapT = THREE.RepeatWrapping
 scene.add(floor)
@@ -158,10 +161,12 @@ house.add(bush1, bush2, bush3, bush4)
 /*
 Globe
 */
-const globeGeometry = new THREE.SphereGeometry(1, 8, 8)
-const globeMaterial =  new THREE.MeshMatcapMaterial({
-    matcap: globeMatcap
+const globeGeometry = new THREE.SphereGeometry(1, 10, 10)
+const globeMaterial = new THREE.PointsMaterial({
+    size: 0.02,
+    sizeAttenuation: true
 })
+
 
 const globes = new THREE.Group()
 scene.add(globes)
@@ -176,9 +181,9 @@ for (let i = 0; i < 30; i++) {
     const yValue = clamp(Math.random() * 10, 1, 10)
 
     const scale = clamp(Math.random() * 0.4, 0.15, 0.4)
- 
+
     //mesh
-    const singleGlobe = new THREE.Mesh(globeGeometry, globeMaterial)
+    const singleGlobe = new THREE.Points(globeGeometry, globeMaterial)
     singleGlobe.position.set(xValue, yValue, zValue)
     singleGlobe.rotation.x = Math.random() - 0.3
     singleGlobe.scale.set(scale, scale, scale)
@@ -200,8 +205,6 @@ scene.add(directionalLight)
 // Point light  ->  Door Light
 const doorLight = new THREE.PointLight('#ff7d46', 5)
 doorLight.position.set(0, 2.2, 2.5)
-const Guide = new THREE.PointLightHelper(doorLight, 1, 100)
-scene.add(Guide)
 scene.add(doorLight)
 
 /**
@@ -210,6 +213,7 @@ scene.add(doorLight)
 const spirit1 = new THREE.PointLight('#ffb8ce', 6)
 gui.add(spirit1, 'intensity').min(0).max(100).step(1).name('Spirit1 Intensity')
 scene.add(spirit1)
+
 const spiritGuide = new THREE.PointLightHelper(spirit1, 1, 100)
 scene.add(spiritGuide)
 
@@ -224,7 +228,7 @@ sky.material.uniforms['mieCoefficient'].value = 0.1
 sky.material.uniforms['mieDirectionalG'].value = 0.95
 sky.material.uniforms['sunPosition'].value.set(0.3, -0.038, -0.95)
 
-sky.scale.set(100,100,100)
+sky.scale.set(100, 100, 100)
 
 scene.add(sky)
 
@@ -290,10 +294,12 @@ const tick = () => {
     const elapsedTime = timer.getElapsed()
 
     //Spirits
-    const spirit1Angle = elapsedTime / 2
+    const spirit1Angle = elapsedTime
     const spiritRadius = 5
     spirit1.position.x = Math.cos(spirit1Angle) * spiritRadius
     spirit1.position.z = Math.sin(spirit1Angle) * spiritRadius
+    spirit1.position.y = 1 + Math.sin(spirit1Angle) * Math.sin(spirit1Angle * 2.34) * Math.sin(spirit1Angle * 3.45)
+
 
     // Update controls
     controls.update()
