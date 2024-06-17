@@ -19,21 +19,47 @@ const scene = new THREE.Scene()
  */
 const textureLoader = new THREE.TextureLoader()
 
+const particleTexture = textureLoader.load('textures/particles/4.png')
+
 /**
  * Particles
  */
 // Geometry
-const particlesGeometry = new THREE.SphereGeometry(1, 32, 32)
+const sphereGeometry = new THREE.SphereGeometry(1, 32, 32)
+const sphereMesh = new THREE.Mesh(sphereGeometry, new THREE.MeshBasicMaterial())
+scene.add(sphereMesh)
 
 // Material
 const particlesMaterial = new THREE.PointsMaterial({
-    size: 0.02,
-    sizeAttenuation: true
+    size: 0.3,
+    sizeAttenuation: true,
+    color: 0xff9bef9,
+    map: particleTexture,
+    transparent: true,
+    alphaMap: particleTexture,
+    //alphaTest: 0.001, //we use a small number instead of 0, that way the render wont show any edges
+    //depthTest: false
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
 })
+gui.addColor(particlesMaterial, 'color')
 
-// Points
-const particles = new THREE.Points(particlesGeometry, particlesMaterial)
-scene.add(particles)
+/**
+ * Custom Geometry
+ */
+const customGeometry = new THREE.BufferGeometry()
+const count = 500
+
+const positions = new Float32Array(count * 3) //Multiply by 3 due that each positions is composed of 3 values (x,y,z)
+
+for (let index = 0; index < count * 3; index++) {
+    positions[index] = (Math.random() - 0.5) * 10
+}
+
+customGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)) //This is used to inform the geometry that each position used 3 values
+
+const customParticles = new THREE.Points(customGeometry, particlesMaterial)
+scene.add(customParticles)
 
 /**
  * Sizes
