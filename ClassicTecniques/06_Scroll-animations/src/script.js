@@ -44,10 +44,10 @@ gui.add(material, "wireframe");
  */
 const objectsDistance = 4;
 
-const torus = new THREE.Mesh(new THREE.TorusGeometry(1, 0.4, 16, 60), material);
-const piramid = new THREE.Mesh(new THREE.ConeGeometry(1, 2, 40), material);
+const torus = new THREE.Mesh(new THREE.TorusGeometry(1, 0.4, 24, 100), material);
+const piramid = new THREE.Mesh(new THREE.ConeGeometry(1, 2, 100), material);
 const knotTorus = new THREE.Mesh(
-  new THREE.TorusKnotGeometry(0.8, 0.35, 100, 16),
+  new THREE.TorusKnotGeometry(0.8, 0.35, 100, 50),
   material
 );
 
