@@ -1,6 +1,6 @@
 import { Float, useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { RigidBody } from '@react-three/rapier'
+import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import React, { useMemo, useRef, useState } from 'react'
 import { BoxGeometry, Euler, MeshStandardMaterial, Quaternion } from 'three'
 
@@ -132,13 +132,17 @@ export function BlockEnd({ position = [0, 0, 0] }) {
 function Bounds({ length = 1, position = [0, 0, 0], scale = [0.3, 1.5, 4 * length] }) {
 
     return <>
-        <mesh
-            position={position}
-            geometry={boxGeometry}
-            material={wallMaterial}
-            scale={scale}
-            castShadow
-        />
+        <RigidBody type='fixed' restitution={0.2} friction={0}>
+            <mesh
+                position={position}
+                geometry={boxGeometry}
+                material={wallMaterial}
+                scale={scale}
+                castShadow
+            />
+            <CuboidCollider args={[2, 0.1, 2 * length]}
+                position={[0, -0.1, -(length * 2) + 2]} />
+        </RigidBody>
 
     </>
 
